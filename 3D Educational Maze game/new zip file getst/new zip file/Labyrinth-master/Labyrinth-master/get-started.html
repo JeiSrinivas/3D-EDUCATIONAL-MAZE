@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>3D Educational Maze - Get Started</title>
+  <style>
+    /* Horror theme palette via CSS variables (5 colors total) */
+    :root{
+      --brand:#b91c1c;       /* blood red */
+      --bg:#1515d6;          /* near-black */
+      --surface:#acc4f7;     /* dark gray surface */
+      --text:#f8fafc;        /* off-white */
+      --accent:#84cc16;      /* sickly green */
+    }
+
+    *{margin:0;padding:0;box-sizing:border-box;}
+
+    /* Replace bright gradient with dark image + overlay, high-contrast text */
+    body{
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--text);
+      line-height:1.6;
+      overflow-x:hidden;
+      background-color: var(--bg);
+      background-image: url("/images/horror-hero.jpg");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      position: relative;
+      min-height: 100vh;
+    }
+    /* dark vignette overlay for readability */
+    body::before{
+      content:"";
+      position:fixed; inset:0;
+      background: radial-gradient(ellipse at center, rgba(232, 7, 7, 0.45) 0%, rgba(0,0,0,0.75) 60%, rgba(0,0,0,0.9) 100%);
+      pointer-events:none;
+      z-index:-1;
+    }
+
+    .container{max-width:1200px;margin:0 auto;padding:0 20px;}
+
+    /* Header */
+    .header{
+      text-align:center;
+      padding:60px 0 40px;
+      background: rgba(16, 16, 39, 0.65); /* glassy dark bar */
+      backdrop-filter: blur(8px);
+      margin-bottom:40px;
+      border-bottom: 1px solid rgba(185,28,28,0.25); /* brand tint */
+    }
+    /* solid text with subtle red glow instead of rainbow gradient */
+    .header h1{
+      font-size:3.5em;
+      margin-bottom:15px;
+      color: var(--text);
+      text-shadow: 0 0 22px rgba(185,28,28,0.35);
+      letter-spacing: 0.5px;
+    }
+    .header p{
+      font-size:1.3em;
+      margin-bottom:30px;
+      opacity:0.9;
+    }
+    /* button to solid blood red with soft glow */
+    .start-btn{
+      display:inline-block;
+      padding:15px 40px;
+      background: var(--brand);
+      color: var(--text);
+      text-decoration:none;
+      border-radius:50px;
+      font-weight:bold;
+      font-size:1.2em;
+      transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease;
+      box-shadow: 0 10px 26px rgba(185,28,28,0.35);
+      border: 1px solid rgba(185,28,28,0.55);
+    }
+    .start-btn:hover{
+      transform: translateY(-4px);
+      box-shadow: 0 16px 34px rgba(185,28,28,0.5);
+      background-color:#a61717; /* same hue, slightly darker */
+    }
+
+    /* Main Content Grid */
+    .content-grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:40px;
+      margin-bottom:40px;
+    }
+    /* glass panels with brand border tint */
+    .content-section{
+      background: rgba(17,24,39,0.75);
+      backdrop-filter: blur(6px);
+      border-radius:20px;
+      padding:30px;
+      border:1px solid rgba(185,28,28,0.22);
+      transition: transform .3s ease, box-shadow .3s ease;
+    }
+    .content-section:hover{
+      transform: translateY(-8px);
+      box-shadow: 0 18px 36px rgba(0,0,0,0.35);
+    }
+    /* section titles in brand color with subtle underline */
+    .content-section h2{
+      font-size:2em;
+      margin-bottom:20px;
+      color: var(--brand);
+      position: relative;
+    }
+    .content-section h2::after{
+      content:"";
+      position:absolute;
+      left:0; bottom:-8px;
+      width:64px; height:3px;
+      background: rgba(185,28,28,0.75);
+      border-radius:2px;
+    }
+    .content-section p{margin-bottom:15px;opacity:0.92;}
+
+    /* Algorithm Cards */
+    .algorithms-section{grid-column:span 2;margin-bottom:40px;}
+    .algorithms-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px,1fr));
+      gap:25px; margin-top:25px;
+    }
+    /* unify to horror palette */
+    .algorithm-card{
+      background: rgba(17,24,39,0.8);
+      border-radius:15px;
+      padding:25px;
+      border-left:5px solid var(--brand);
+      transition: transform .3s ease, box-shadow .3s ease;
+      position:relative; overflow:hidden;
+    }
+    .algorithm-card::before{
+      content:"";
+      position:absolute; inset:0;
+      background: linear-gradient(135deg, transparent 0%, rgba(248,250,252,0.05) 100%);
+      pointer-events:none;
+    }
+    .algorithm-card:hover{
+      transform: scale(1.04);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+    }
+    /* Keep single-brand borders; give Greedy a green accent without adding new hues */
+    .algorithm-card.greedy{ border-left-color: var(--accent); }
+
+    /* headings neutral with slight glow for readability */
+    .algorithm-card h3{
+      font-size:1.5em;
+      margin-bottom:15px;
+      color: var(--text);
+      text-shadow: 0 0 10px rgba(185,28,28,0.25);
+    }
+    .algorithm-features{list-style:none;margin-top:15px;}
+    .algorithm-features li{
+      margin-bottom:8px; padding-left:20px; position:relative; opacity:0.92;
+    }
+    /* bullets in sickly green accent */
+    .algorithm-features li::before{
+      content:'▸';
+      position:absolute; left:0;
+      color: var(--accent); font-weight:bold;
+    }
+
+    /* How to Play Section */
+    .how-to-play{
+      background: rgba(11,11,15,0.7);
+      border-radius:20px; padding:40px; margin-bottom:40px;
+      border:1px solid rgba(185,28,28,0.22);
+    }
+    .how-to-play h2{
+      font-size:2em; color: var(--brand); position:relative;
+    }
+    .how-to-play h2::after{
+      content:""; position:absolute; left:0; bottom:-8px;
+      width:64px;height:3px;background: rgba(185,28,28,0.75); border-radius:2px;
+    }
+    .controls-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
+      gap:20px; margin-top:25px;
+    }
+    .control-item{
+      display:flex; align-items:center;
+      background: rgba(17,24,39,0.7);
+      padding:15px; border-radius:10px;
+      border-left:3px solid var(--brand);
+    }
+    .control-key{
+      background: rgba(248,250,252,0.08);
+      color: var(--text);
+      padding:8px 12px; border-radius:5px;
+      font-weight:bold; margin-right:15px; min-width:60px; text-align:center;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Features Section */
+    .features-section{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+      gap:30px; margin-bottom:40px;
+    }
+    .feature-card{
+      background: rgba(17,24,39,0.75);
+      padding:30px; border-radius:15px; text-align:center;
+      transition: transform .3s ease, background .3s ease;
+      border-top:3px solid var(--brand); /* unified border color */
+    }
+    .feature-card:nth-child(2){ border-top-color: var(--accent); } /* single accent usage */
+    .feature-card:hover{
+      transform: translateY(-8px);
+      background: rgba(17,24,39,0.85);
+    }
+    .feature-icon{font-size:3em;margin-bottom:20px;}
+    .feature-card h3{
+      font-size:1.5em; margin-bottom:15px; color: var(--text);
+    }
+
+    /*  */
+    .footer{
+      text-align:center; padding:40px 0;
+      background: rgba(11,11,15,0.8);
+      margin-top:40px; border-top:1px solid rgba(185,28,28,0.25);
+    }
+    .footer-buttons{
+      display:flex; justify-content:center; gap:20px;
+      margin-bottom:20px; flex-wrap:wrap;
+    }
+    .footer-btn{
+      padding:12px 25px;
+      background: transparent;
+      color: var(--text);
+      text-decoration:none; border-radius:25px;
+      transition: all .25s ease;
+      border:1px solid rgba(185,28,28,0.45);
+    }
+    .footer-btn:hover{
+      background: rgba(185,28,28,0.18);
+      transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width:768px){
+      .header h1{font-size:2.5em;}
+      .content-grid{grid-template-columns:1fr; gap:20px;}
+      .algorithms-section{grid-column:span 1;}
+      .algorithms-grid{grid-template-columns:1fr;}
+      .controls-grid{grid-template-columns:1fr;}
+      .features-section{grid-template-columns:1fr; gap:20px;}
+      .footer-buttons{flex-direction:column; align-items:center;}
+    }
+
+    /* Animations (unchanged, theme-friendly) */
+    @keyframes fadeInUp{
+      from{opacity:0; transform: translateY(30px);}
+      to{opacity:1; transform: translateY(0);}
+    }
+    .content-section,.algorithm-card,.feature-card{animation: fadeInUp .6s ease forwards;}
+    .algorithm-card:nth-child(1){animation-delay:.1s;}
+    .algorithm-card:nth-child(2){animation-delay:.2s;}
+    .algorithm-card:nth-child(3){animation-delay:.3s;}
+    .algorithm-card:nth-child(4){animation-delay:.4s;}
+    .algorithm-card:nth-child(5){animation-delay:.5s;}
+  </style>
+</head>
+<body>
+   
+  <div class="header">
+    <div class="container">
+      <h1>3D Educational Maze</h1>
+      <p>Learn pathfinding algorithms through interactive gameplay</p>
+      <a href="#" class="start-btn" onclick="startGame()">🎮 Start Your Journey</a>
+    </div>
+  </div>
+
+  <div class="container">
+     
+    <div class="content-grid">
+      <div class="content-section">
+        <h2>🎯 What You'll Learn</h2>
+        <p>Dive deep into the world of pathfinding algorithms through hands-on experience. This interactive maze combines the excitement of gaming with fundamental computer science concepts.</p>
+        <p>Each algorithm approaches the pathfinding problem differently, giving you insights into various problem-solving strategies used in AI, robotics, and game development.</p>
+        <p>Perfect for students, educators, and anyone curious about how computers find optimal paths through complex problems.</p>
+      </div>
+
+      <div class="content-section">
+        <h2>🚀 Game Features</h2>
+        <p><strong>Immersive 3D Environment:</strong> Navigate through a realistic 3D maze with smooth controls and engaging visuals.</p>
+        <p><strong>Interactive Learning:</strong> See algorithms in action with real-time visualization on the minimap.</p>
+        <p><strong>Performance Metrics:</strong> Compare algorithm efficiency with detailed statistics including path length and nodes explored.</p>
+        <p><strong>Educational Value:</strong> Perfect for computer science education and algorithm visualization.</p>
+      </div>
+    </div>
+
+     
+    <div class="content-section algorithms-section">
+      <h2>🧠 Pathfinding Algorithms</h2>
+      <p>Master these five essential pathfinding algorithms, each with unique characteristics and use cases:</p>
+
+      <div class="algorithms-grid">
+        <div class="algorithm-card bfs">
+          <h3>🔵 Breadth-First Search (BFS)</h3>
+          <p>Explores all neighbors at the current depth before moving to nodes at the next depth level. Guarantees the shortest path in unweighted graphs.</p>
+          <ul class="algorithm-features">
+            <li>Always finds optimal solution</li>
+            <li>Explores level by level</li>
+            <li>Great for shortest path problems</li>
+            <li>Memory intensive but thorough</li>
+          </ul>
+        </div>
+
+        <div class="algorithm-card dfs">
+          <h3>🟣 Depth-First Search (DFS)</h3>
+          <p>Explores as far as possible along each branch before backtracking. Fast but doesn't guarantee the optimal path.</p>
+          <ul class="algorithm-features">
+            <li>Memory efficient</li>
+            <li>Quick to find a solution</li>
+            <li>May not find optimal path</li>
+            <li>Good for maze generation</li>
+          </ul>
+        </div>
+
+        <div class="algorithm-card dijkstra">
+          <h3>🔴 Dijkstra's Algorithm</h3>
+          <p>Finds the shortest path by systematically exploring nodes in order of their distance from the start. Optimal for weighted graphs.</p>
+          <ul class="algorithm-features">
+            <li>Guarantees optimal solution</li>
+            <li>Works with weighted edges</li>
+            <li>Systematic exploration</li>
+            <li>Foundation for many algorithms</li>
+          </ul>
+        </div>
+
+        <div class="algorithm-card astar">
+          <h3>🟡 A* (A-Star)</h3>
+          <p>Combines the best of Dijkstra and Greedy algorithms using heuristics to guide the search toward the goal more efficiently.</p>
+          <ul class="algorithm-features">
+            <li>Optimal and efficient</li>
+            <li>Uses heuristic guidance</li>
+            <li>Industry standard for games</li>
+            <li>Balances optimality and speed</li>
+          </ul>
+        </div>
+
+        <div class="algorithm-card greedy">
+          <h3>🟢 Greedy Best-First</h3>
+          <p>Always moves toward the goal using heuristics. Fast but may get trapped in local optima and miss the optimal path.</p>
+          <ul class="algorithm-features">
+            <li>Very fast execution</li>
+            <li>Intuitive approach</li>
+            <li>May not find optimal path</li>
+            <li>Good for real-time applications</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+     
+    <div class="how-to-play">
+      <h2>🎮 How to Play</h2>
+      <p>Master the controls and start your pathfinding adventure:</p>
+
+      <div class="controls-grid">
+        <div class="control-item">
+          <div class="control-key">WASD</div>
+          <div>Move through the maze in first-person view</div>
+        </div>
+        <div class="control-item">
+          <div class="control-key">Mouse</div>
+          <div>Look around and change direction</div>
+        </div>
+        <div class="control-item">
+          <div class="control-key">Alg Buttons</div>
+          <div>Click to visualize different pathfinding strategies</div>
+        </div>
+        <div class="control-item">
+          <div class="control-key">map</div>
+          <div>Follow the red path generated by algorithms</div>
+        </div>
+      </div>
+    </div>
+
+      
+    <div class="features-section">
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>Educational Goal</h3>
+        <p>Learn fundamental algorithms through interactive gameplay and visual feedback.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Performance Analysis</h3>
+        <p>Compare algorithm efficiency with detailed metrics and statistics.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>Visual Learning</h3>
+        <p>See algorithms in action with real-time path visualization on the minimap.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🏆</div>
+        <h3>Skill Building</h3>
+        <p>Develop problem-solving skills and algorithmic thinking through practice.</p>
+      </div>
+    </div>
+  </div>
+
+    
+  <div class="footer">
+    <div class="container">
+      <div class="footer-buttons">
+        <a href="#" class="footer-btn" onclick="startGame()">🎮 Play Now</a>
+        <a href="#" class="footer-btn" onclick="showTutorial()">📚 Tutorial</a>
+        <a href="#" class="footer-btn" onclick="showAbout()">ℹ About</a>
+        <a href="#" class="footer-btn" onclick="showHelp()">❓ Help</a>
+      </div>
+      <p>&copy; 2025 3D Educational Maze - Learn Algorithms Through Play</p>
+    </div>
+  </div>
+
+  <script>
+    // Navigation functions
+    function startGame(){ window.location.href='index.html'; }
+    function showTutorial(){ alert('Tutorial coming soon! For now, click algorithm buttons in the game to see pathfinding in action.'); }
+    function showAbout(){ alert('3D Educational Maze - An interactive way to learn pathfinding algorithms through gameplay. Perfect for students and educators!'); }
+    function showHelp(){ alert('Need help? Use WASD to move, mouse to look around, and click algorithm buttons to see different pathfinding strategies!'); }
+
+    // NOTE: Kept your original animation/particles logic structure (content unchanged).
+    document.addEventListener('DOMContentLoaded', function(){
+      const algorithmCards=document.querySelectorAll('.algorithm-card');
+      algorithmCards.forEach((card,index)=>{
+        /* minor: same effect, string value assignment */
+        card.style.animationDelay = (index * 0.1) + 's';
+      });
+
+      const observerOptions={threshold:0.1,rootMargin:'0px 0px -50px 0px'};
+      const observer=new IntersectionObserver((entries)=>{
+        entries.forEach(entry=>{ if(entry.isIntersecting){ entry.target.style.animationPlayState='running'; } });
+      },observerOptions);
+
+      const animatedElements=document.querySelectorAll('.content-section, .algorithm-card, .feature-card');
+      animatedElements.forEach(el=>{ el.style.animationPlayState='paused'; observer.observe(el); });
+    });
+
+    function createFloatingParticles(){
+      const particles=[]; const particleCount=50;
+      for(let i=0;i<particleCount;i++){
+        const particle=document.createElement('div');
+        particle.style.position='fixed';
+        particle.style.width='2px'; particle.style.height='2px';
+        particle.style.background='rgba(248,250,252,0.08)'; /* match palette */
+        particle.style.borderRadius='50%'; particle.style.pointerEvents='none'; particle.style.zIndex='1';
+        const x=Math.random()*window.innerWidth;
+        const y=Math.random()*window.innerHeight;
+        const speed=Math.random()*2+0.5;
+        particle.style.left=x+'px'; particle.style.top=y+'px';
+        document.body.appendChild(particle);
+        particles.push({element:particle,x,y,speed});
+      }
+      function animateParticles(){
+        particles.forEach(p=>{
+          p.y-=p.speed;
+          if(p.y<-10){ p.y=window.innerHeight+10; p.x=Math.random()*window.innerWidth; }
+          p.element.style.left=p.x+'px'; p.element.style.top=p.y+'px';
+        });
+        requestAnimationFrame(animateParticles);
+      }
+      animateParticles();
+    }
+    createFloatingParticles();
+  </script>
+</body>
+</html>

@@ -1,0 +1,577 @@
+<html>
+<head>
+    <title>Labyrinth</title>
+    <link rel="stylesheet" type="text/css" href="src/styles.css"/>
+    <link rel="icon" type="image/png" href="src/assets/bush.png"/>
+    <style>
+        /* Game Over screen */
+        #game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: red;
+            display: none;
+            z-index: 1000000;
+        }
+
+        
+
+        #restart-btn {
+            margin-top: 20px;
+            font-size: 20px;
+            padding: 10px 20px;
+            background: black;
+            color: white;
+            border: 2px solid white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #restart-btn:hover {
+            background: #333;
+        }
+
+        /* Player Life Circular Display */
+        #playerLife {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 80px;
+            height: 80px;
+            z-index: 1000;
+        }
+
+        .life-circle {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, var(--life-color) var(--life-percentage), rgba(0,0,0,0.3) var(--life-percentage));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+
+        .life-text {
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            font-family: Arial, sans-serif;
+            z-index: 1001;
+        }
+
+        .life-circle::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.7);
+            z-index: -1;
+        }
+
+        /* Damage Indicator Styles */
+        .damage-indicator {
+            position: fixed;
+            color: #ff4444;
+            font-size: 30px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            pointer-events: none;
+            z-index: 10000;
+            animation: damageFloat 2s ease-out forwards;
+        }
+
+        @keyframes damageFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0px) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translateY(-30px) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-60px) scale(0.8);
+            }
+        }
+
+        /* ===================== */
+        /* SETTINGS MENU STYLES  */
+        /* ===================== */
+        #settings-container {
+            position: fixed !important;
+            top: 110px;  /* below life circle */
+            left: 20px !important;
+            right: auto !important;
+            z-index: 2000;
+            width: auto;
+            text-align: left; /* make buttons align left */
+        }
+
+        #settings-btn {
+            background: #444;
+            color: white;
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 18px;
+            display: block;
+        }
+
+        #settings-menu {
+            align-items: flex-start; /* push menu buttons to left */
+            margin-top: 10px;
+            background: rgba(50, 50, 50, 0.95);
+            border: 2px solid #000;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 120px;
+            align-items: flex-start;  /* ✅ align buttons to the left */
+        }
+
+        #settings-menu button {
+            background: #666;
+            color: white;
+            border: 1px solid #000;
+            border-radius: 6px;
+            padding: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+            width: 100%; /* ✅ make buttons expand full width on the left */
+            text-align: left; /* ✅ text inside button aligned left */
+}
+        #settings-menu button:hover {
+            background: #888;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Algorithm control small styling */
+        #algorithm-controls {
+            position: fixed;
+            top: 110px;
+            left: 160px;
+            z-index: 2000;
+            background: rgba(30,30,30,0.9);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #222;
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        #algorithm-controls button {
+            background: #555;
+            color: white;
+            border: 1px solid #111;
+            padding: 6px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #algorithm-controls button:hover { background: #777; }
+
+        /* Win Screen Styles */
+        #win-screen {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #4CAF50;
+            display: none;
+            z-index: 1000000;
+            background: rgba(0,0,0,0.8);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid #4CAF50;
+        }
+
+        #win-restart-btn {
+            margin-top: 20px;
+            font-size: 20px;
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: 2px solid white;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #win-restart-btn:hover {
+            background: #45a049;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="screen">
+        <div id="floor"></div>
+        <div id="ceiling"></div>
+        <div id="map">
+            <canvas id="minimap"></canvas>
+            <canvas id="objects"></canvas>
+            <!-- path overlay canvas (added) -->
+            <canvas id="pathLayer" style="position:absolute; left:0; top:0; pointer-events:none; z-index:99999;"></canvas>
+        </div>
+    </div>
+
+    <!-- Player Life Circular Display -->
+    <div id="playerLife">
+        <div class="life-circle">
+            <div class="life-text">100</div>
+        </div>
+    </div>
+
+    <!-- Settings Menu -->
+    <div id="settings-container">
+        <button id="settings-btn">⚙</button>
+        <div id="settings-menu" class="hidden">
+            <button id="fullscreen-btn">⛶ Fullscreen</button>
+            <button id="volume-up">🔊 Volume +</button>
+            <button id="volume-down">🔉 Volume -</button>
+            <button id="mute">🔇 Mute</button>
+            <button id="resume">▶ Resume</button>
+        </div>
+    </div>
+
+   
+    </div>
+
+    <!-- Game Over Message -->
+    <div id="game-over">
+        You have been slain<br/> 
+        <button id="restart-btn">Restart</button>
+    </div>
+
+    <!-- ================== WIN SCREEN ================== -->
+    <div id="win-screen">
+        <p>You Win 🎉</p>
+        <button id="win-restart-btn">Restart</button>
+    </div>
+
+
+    <!-- Damage Sound -->
+    <audio id="damageSound" src="src/assets/sounds/damage.mp3"></audio>
+
+    <!-- Game Scripts -->
+    <script src="src/sprites.js" type="text/javascript"></script>
+    <script src="src/enemies.js" type="text/javascript"></script>
+    <script src="src/player.js" type="text/javascript"></script>
+    <script src="src/renderer.js" type="text/javascript"></script>
+    <script src="src/map.js" type="text/javascript"></script>
+
+   
+
+    <script src="src/init.js" type="text/javascript"></script>
+
+    <script>
+        // ---------------- GLOBAL VOLUME CONTROL ----------------
+        let globalVolume = 1.0; // range: 0.0 - 1.0
+        function applyGlobalVolume() {
+            const sounds = document.querySelectorAll("audio");
+            sounds.forEach(s => s.volume = globalVolume);
+        }
+
+        // ---------------- HEALTH SYSTEM ----------------
+        let health = 100;
+        const playerLifeDisplay = document.querySelector(".life-circle");
+        const lifeText = document.querySelector(".life-text");
+        const gameOverScreen = document.getElementById("game-over");
+        const restartBtn = document.getElementById("restart-btn");
+
+        function setHealth(value) {
+            health = Math.max(0, Math.min(100, value)); 
+            updateLifeCircle(health);
+            if (health <= 0) {
+                gameOverScreen.style.display = "block";
+            }
+        }
+
+        function updateLifeCircle(health) {
+            const percentage = (health / 100) * 360; 
+            let color;
+            if (health > 60) {
+                color = '#4CAF50'; 
+            } else if (health > 30) {
+                color = '#FFC107'; 
+            } else {
+                color = '#F44336'; 
+            }
+            playerLifeDisplay.style.setProperty('--life-percentage', percentage + 'deg');
+            playerLifeDisplay.style.setProperty('--life-color', color);
+            lifeText.textContent = health;
+        }
+
+        restartBtn.addEventListener("click", () => {
+            setHealth(100);
+            if (window.player) {
+                const startPos = findStartPosition();
+                player.x = startPos.x + 0.5;
+                player.y = startPos.y + 0.5;
+                player.rotation = 0;
+                player.pitch = 0;
+            }
+            gameOverScreen.style.display = "none";
+
+        });
+
+        setHealth(100);
+
+        // ---------------- MOUSE CONTROL SYSTEM ----------------
+        const screen = document.getElementById("screen");
+        screen.addEventListener("click", () => {
+            if (!paused) screen.requestPointerLock();
+        });
+
+        document.addEventListener("mousemove", (event) => {
+            if (document.pointerLockElement === screen && !paused) {
+                if (window.player) {
+                    player.dir += event.movementX * 0.002;
+                    if (player.pitch === undefined) player.pitch = 0;
+                    player.pitch -= event.movementY * 0.002;
+                    player.pitch = Math.max(-1.2, Math.min(1.2, player.pitch));
+                }
+            }
+        });
+
+        // ---------------- GLOBAL FUNCTIONS FOR SPRITES ----------------
+        window.updateLifeDisplay = function() {
+            updateLifeCircle(health);
+        }
+
+        window.damagePlayer = function(damage) {
+            if (!paused) {
+                setHealth(health - damage);
+                console.log("Player hit by bush! Life: " + health + "/100");
+                showDamageIndicator(damage);
+
+                // Play damage sound
+                window.playDamageSound();
+            }
+        }
+
+        function showDamageIndicator(damage) {
+            const damageElement = document.createElement('div');
+            damageElement.className = 'damage-indicator';
+            damageElement.textContent = '-' + damage;
+            const randomX = Math.random() * 200 - 100;
+            const randomY = Math.random() * 100 - 50;
+            damageElement.style.left = (window.innerWidth / 2 + randomX) + 'px';
+            damageElement.style.top = (window.innerHeight / 2 + randomY) + 'px';
+            document.body.appendChild(damageElement);
+            setTimeout(() => {
+                if (damageElement && damageElement.parentNode) {
+                    damageElement.parentNode.removeChild(damageElement);
+                }
+            }, 2000);
+        }
+
+        window.gameOver = function() {
+            setHealth(0);
+            if (window.player) {
+                player.x = 1.5;
+                player.y = 1.5;
+            }
+        }
+
+        // ---------------- COLLISION DETECTION LOOP ----------------
+        let paused = false;
+
+        function checkCollisions() {
+            if (!paused && window.player && window.handlePlayerMovement) {
+                handlePlayerMovement(player.x, player.y);
+            }
+            requestAnimationFrame(checkCollisions);
+        }
+
+        window.addEventListener('load', function() {
+            setTimeout(checkCollisions, 1000);
+            applyGlobalVolume();
+            // Initialize pathfinding after everything loads
+            setTimeout(initializePathfinding, 1500);
+        });
+
+        // ---------------- SETTINGS MENU ----------------
+        const settingsBtn = document.getElementById("settings-btn");
+        const settingsMenu = document.getElementById("settings-menu");
+
+        settingsBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("Settings button clicked");
+            
+            if (settingsMenu.classList.contains("hidden")) {
+                settingsMenu.classList.remove("hidden");
+                console.log("Menu opened");
+            } else {
+                settingsMenu.classList.add("hidden");
+                console.log("Menu closed");
+            }
+        });
+
+        document.getElementById("fullscreen-btn").addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleFullscreen();
+        });
+
+        // ---------------- VOLUME BUTTONS ----------------
+        document.getElementById("volume-up").addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            globalVolume = Math.min(1.0, globalVolume + 0.1);
+            applyGlobalVolume();
+            console.log("Volume UP:", globalVolume);
+        });
+
+        document.getElementById("volume-down").addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            globalVolume = Math.max(0.0, globalVolume - 0.1);
+            applyGlobalVolume();
+            console.log("Volume DOWN:", globalVolume);
+        });
+
+        document.getElementById("mute").addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (globalVolume > 0) {
+                globalVolume = 0;
+            } else {
+                globalVolume = 1.0;
+            }
+            applyGlobalVolume();
+            console.log("Mute Toggle:", globalVolume);
+        });
+
+        document.getElementById("resume").addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            paused = !paused; // toggle pause/resume
+            console.log(paused ? "Game Paused" : "Game Resumed");
+            settingsMenu.classList.add("hidden");
+            if (!paused) {
+                screen.requestPointerLock();
+            } else {
+                document.exitPointerLock();
+            }
+        });
+
+        // ---------------- FULLSCREEN FUNCTIONALITY ----------------
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                // Enter fullscreen
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen();
+                } else if (document.documentElement.mozRequestFullScreen) {
+                    document.documentElement.mozRequestFullScreen();
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else if (document.documentElement.msRequestFullscreen) {
+                    document.documentElement.msRequestFullscreen();
+                }
+                console.log("Entering fullscreen mode");
+            } else {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+                console.log("Exiting fullscreen mode");
+            }
+            // Hide settings menu after fullscreen toggle
+            settingsMenu.classList.add("hidden");
+        }
+
+        // Update fullscreen button text based on state
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        document.addEventListener('mozfullscreenchange', updateFullscreenButton);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+        document.addEventListener('msfullscreenchange', updateFullscreenButton);
+
+        function updateFullscreenButton() {
+            const fullscreenBtn = document.getElementById("fullscreen-btn");
+            if (document.fullscreenElement) {
+                fullscreenBtn.textContent = "⛶ Exit Fullscreen";
+            } else {
+                fullscreenBtn.textContent = "⛶ Fullscreen";
+            }
+        }
+
+        // Keyboard shortcut for fullscreen (F11 or F key)
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'F11' || (event.key === 'f' || event.key === 'F')) {
+                event.preventDefault();
+                toggleFullscreen();
+            }
+            // Close settings menu with Escape key
+            if (event.key === 'Escape' && !settingsMenu.classList.contains("hidden")) {
+                settingsMenu.classList.add("hidden");
+            }
+        });
+
+        // Close settings menu when clicking outside of it
+        document.addEventListener('click', (event) => {
+            if (!settingsBtn.contains(event.target) && !settingsMenu.contains(event.target)) {
+                if (!settingsMenu.classList.contains("hidden")) {
+                    settingsMenu.classList.add("hidden");
+                }
+            }
+        });
+
+        // ---------------- DAMAGE SOUND FUNCTION ----------------
+        window.playDamageSound = function() {
+            const sound = document.getElementById("damageSound");
+            if (sound) {
+                sound.currentTime = 0; // rewind
+                sound.volume = globalVolume;
+                sound.play();
+            }
+        }
+
+
+    </script>
+    <script>
+function showWinScreen() {
+    document.getElementById("win-screen").style.display = "block";
+}
+
+document.getElementById("win-restart-btn").addEventListener("click", function() {
+    // Reset player to start
+    if (typeof findStartPosition === "function") {
+        let startPos = findStartPosition();
+        player.x = startPos.x + 0.5;
+        player.y = startPos.y + 0.5;
+    }
+    document.getElementById("win-screen").style.display = "none";
+
+});
+</script>
+
+</body>
+</html>
